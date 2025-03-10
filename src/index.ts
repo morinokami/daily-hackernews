@@ -1,3 +1,4 @@
+import { Readability } from '@mozilla/readability';
 import { parseHTML } from 'linkedom';
 import OpenAI from 'openai';
 import { Resend } from 'resend';
@@ -27,6 +28,7 @@ export default {
 		const news = await Promise.all(
 			topStories.map(async (story) => {
 				const newsDom = parseHTML(await fetch(story.url).then((response) => response.text()));
+				const newsContent = new Readability(newsDom.window.document).parse();
 				const comments = await Promise.all(
 					story.kids.map(async (id) => {
 						const comment = (await fetch(`https://hacker-news.firebaseio.com/v0/item/${id}.json`).then((response) => response.json())) as {
@@ -38,7 +40,7 @@ export default {
 				return {
 					title: story.title,
 					url: story.url,
-					news: newsDom.window.document.querySelector('body')?.textContent as string,
+					news: newsContent?.textContent,
 					comments,
 				};
 			}),
@@ -64,6 +66,7 @@ ${JSON.stringify(news)}`,
 				},
 			],
 		});
+		console.log(`[USAGE] ${completion.usage}`);
 
 		const resend = new Resend(env.RESEND_API_KEY);
 		await resend.emails.send({
@@ -72,5 +75,5 @@ ${JSON.stringify(news)}`,
 			subject: "Today's Hacker News",
 			text: completion.choices[0].message.content ?? '',
 		});
-	}
+	},
 } satisfies ExportedHandler<Bindings>;
