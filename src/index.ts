@@ -10,7 +10,7 @@ type Bindings = {
 };
 
 export default {
-	async fetch(request, env, ctx): Promise<Response> {
+	async scheduled(controller, env, ctx) {
 		const topStories = (await fetch('https://hacker-news.firebaseio.com/v0/topstories.json')
 			.then((response) => response.json() as Promise<number[]>)
 			.then((ids) => ids.slice(0, 50))
@@ -72,7 +72,5 @@ ${JSON.stringify(news)}`,
 			subject: "Today's Hacker News",
 			text: completion.choices[0].message.content ?? '',
 		});
-
-		return new Response('ok');
-	},
+	}
 } satisfies ExportedHandler<Bindings>;
