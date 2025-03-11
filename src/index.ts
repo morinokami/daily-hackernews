@@ -66,14 +66,15 @@ ${JSON.stringify(news)}`,
 				},
 			],
 		});
-		console.log(`[USAGE] ${JSON.stringify(completion.usage, null, 2)}`);
+		console.log(`[DEBUG] Usage: ${JSON.stringify(completion.usage, null, 2)}`);
 
 		const resend = new Resend(env.RESEND_API_KEY);
-		await resend.emails.send({
+		const result = await resend.emails.send({
 			from: env.EMAIL_FROM,
 			to: env.EMAIL_TO,
 			subject: "Today's Hacker News",
 			text: completion.choices[0].message.content ?? '',
 		});
+		console.log(`[Debug] CreateEmailResponse: ${JSON.stringify(result, null, 2)}`);
 	},
 } satisfies ExportedHandler<Bindings>;
