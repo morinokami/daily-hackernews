@@ -32,13 +32,15 @@ export default {
 
 		const news = await Promise.all(
 			topStories.map(async (story) => {
-				const newsDom = parseHTML(await fetch(story.url).then((response) => response.text()));
 				let newsContent: ReturnType<typeof Readability.prototype.parse> | null = null;
-				try {
-					newsContent = new Readability(newsDom.window.document).parse();
-				} catch (error) {
-					console.log(`Failed to parse ${story.url}`);
-					console.error(error);
+				if (!story.url.endsWith('.pdf')) {
+					const newsDom = parseHTML(await fetch(story.url).then((response) => response.text()));
+					try {
+						newsContent = new Readability(newsDom.window.document).parse();
+					} catch (error) {
+						console.log(`Failed to parse ${story.url}`);
+						console.error(error);
+					}
 				}
 				const comments = await Promise.all(
 					story.kids.map(async (id) => {
