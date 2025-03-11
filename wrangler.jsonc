@@ -7,6 +7,9 @@
 		"enabled": true
 	},
 	"triggers": {
-		"crons": ["0 * * * *"]
+		"crons": [
+			// every day at 10:00 JST
+			"0 1 * * *"
+		]
 	}
 }
