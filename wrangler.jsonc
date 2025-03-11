@@ -8,8 +8,8 @@
 	},
 	"triggers": {
 		"crons": [
-			// 10:00 (JST) everyday
-			"0 1 * * *"
+			// 11:00 (JST) everyday
+			"0 2 * * *"
 		]
 	}
 }

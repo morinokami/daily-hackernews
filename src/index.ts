@@ -66,7 +66,7 @@ ${JSON.stringify(news)}`,
 				},
 			],
 		});
-		console.log(`[USAGE] ${completion.usage}`);
+		console.log(`[USAGE] ${JSON.stringify(completion.usage, null, 2)}`);
 
 		const resend = new Resend(env.RESEND_API_KEY);
 		await resend.emails.send({
