@@ -1,5 +1,4 @@
 import { Html, Markdown } from '@react-email/components';
-import * as React from 'react';
 
 export default function Email({
 	summaries,
