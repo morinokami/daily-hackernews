@@ -2,23 +2,33 @@
 	"name": "daily-hackernews",
 	"version": "0.0.0",
 	"private": true,
+	"packageManager": "pnpm@10.6.2",
 	"scripts": {
-		"deploy": "wrangler deploy",
 		"dev": "wrangler dev",
-		"start": "wrangler dev",
-		"test": "vitest",
-		"cf-typegen": "wrangler types"
+		"dev:email": "email dev --dir src/emails"
 	},
 	"dependencies": {
 		"@mozilla/readability": "0.6.0",
+		"@react-email/components": "0.0.33",
+		"@react-email/render": "1.0.5",
 		"linkedom": "0.18.9",
 		"openai": "4.86.2",
-		"resend": "4.1.2"
+		"react": "19.0.0",
+		"react-dom": "19.0.0",
+		"react-email": "3.0.7",
+		"resend": "4.1.2",
+		"zod": "3.24.2"
 	},
 	"devDependencies": {
 		"@cloudflare/workers-types": "4.20250303.0",
+		"@types/react": "19.0.10",
 		"prettier": "3.5.3",
 		"typescript": "5.8.2",
 		"wrangler": "3.112.0"
+	},
+	"pnpm": {
+		"onlyBuiltDependencies": [
+			"esbuild"
+		]
 	}
 }

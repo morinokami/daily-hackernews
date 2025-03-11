@@ -1,7 +1,13 @@
 import { Readability } from '@mozilla/readability';
+import { render } from '@react-email/render';
 import { parseHTML } from 'linkedom';
 import OpenAI from 'openai';
+import { zodResponseFormat } from 'openai/helpers/zod';
+import * as React from 'react';
 import { Resend } from 'resend';
+import { z } from 'zod';
+
+import Email from './emails/my-email';
 
 type Bindings = {
 	EMAIL_FROM: string;
@@ -11,6 +17,18 @@ type Bindings = {
 };
 
 const NUM_NEWS = 5;
+
+const SummarySchema = z.object({
+	summaries: z.array(
+		z.object({
+			id: z.number(),
+			newsTitle: z.string(),
+			url: z.string(),
+			newsSummary: z.string(),
+			commentsSummary: z.string(),
+		}),
+	),
+});
 
 export default {
 	async fetch(request, env, ctx) {
@@ -51,7 +69,8 @@ export default {
 					}),
 				);
 				return {
-					title: story.title,
+					id: story.id,
+					newsTitle: story.title,
 					url: story.url,
 					news: newsContent?.textContent ?? '',
 					comments,
@@ -59,10 +78,10 @@ export default {
 			}),
 		);
 
-		const client = new OpenAI({
+		const openai = new OpenAI({
 			apiKey: env.OPENAI_API_KEY,
 		});
-		const completion = await client.chat.completions.create({
+		const completion = await openai.beta.chat.completions.parse({
 			model: 'gpt-4o',
 			messages: [
 				{
@@ -71,24 +90,23 @@ export default {
 Please summarize the content of the articles and describe how people are reacting to them in the comments.
 Note that the articles are from various sources and it's possible that some of them may be empty or contain irrelevant information.
 
-Please output in the following format:
-- Title: <title> (URL: <url>)
-- Summary: <summary>
-- How people are reacting: <comments>
-
 ${JSON.stringify(news)}`,
 				},
 			],
+			response_format: zodResponseFormat(SummarySchema, 'summaries'),
 		});
 		console.log(completion.usage);
 
-		const resend = new Resend(env.RESEND_API_KEY);
-		const resendResult = await resend.emails.send({
-			from: env.EMAIL_FROM,
-			to: env.EMAIL_TO,
-			subject: "Today's Hacker News",
-			text: completion.choices[0].message.content ?? '',
-		});
-		console.log(resendResult);
+		const { parsed } = completion.choices[0].message;
+		if (parsed !== null) {
+			const resend = new Resend(env.RESEND_API_KEY);
+			const resendResult = await resend.emails.send({
+				from: env.EMAIL_FROM,
+				to: env.EMAIL_TO,
+				subject: "Today's Hacker News",
+				html: await render(React.createElement(Email, { summaries: parsed.summaries })),
+			});
+			console.log(resendResult);
+		}
 	},
 } satisfies ExportedHandler<Bindings>;
