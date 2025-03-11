@@ -7,9 +7,6 @@
 		"enabled": true
 	},
 	"triggers": {
-		"crons": [
-			// every 15 minutes
-			"*/15 * * * *"
-		]
+		"crons": ["0 * * * *"]
 	}
 }

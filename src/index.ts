@@ -10,6 +10,8 @@ type Bindings = {
 	RESEND_API_KEY: string;
 };
 
+const NUM_NEWS = 5;
+
 export default {
 	async scheduled(controller, env, ctx) {
 		const topStories = (await fetch('https://hacker-news.firebaseio.com/v0/topstories.json')
@@ -18,7 +20,7 @@ export default {
 			.then((ids) =>
 				Promise.all(ids.map((id) => fetch(`https://hacker-news.firebaseio.com/v0/item/${id}.json`).then((response) => response.json()))),
 			)
-			.then((stories) => stories.sort((a: any, b: any) => b.score - a.score).slice(0, 3))) as {
+			.then((stories) => stories.sort((a: any, b: any) => b.score - a.score).slice(0, NUM_NEWS))) as {
 			id: number;
 			title: string;
 			url: string;
@@ -54,7 +56,7 @@ export default {
 			messages: [
 				{
 					role: 'user',
-					content: `The following is data collected from 3 top news articles and comments from Hacker News.
+					content: `The following is data collected from ${NUM_NEWS} top news articles and comments from Hacker News.
 Please summarize the content of the articles and describe how people are reacting to them in the comments.
 
 Please output in the following format:
@@ -66,15 +68,15 @@ ${JSON.stringify(news)}`,
 				},
 			],
 		});
-		console.log(`[DEBUG] Usage: ${JSON.stringify(completion.usage, null, 2)}`);
+		console.log(completion.usage);
 
 		const resend = new Resend(env.RESEND_API_KEY);
-		const result = await resend.emails.send({
+		const resendResult = await resend.emails.send({
 			from: env.EMAIL_FROM,
 			to: env.EMAIL_TO,
 			subject: "Today's Hacker News",
 			text: completion.choices[0].message.content ?? '',
 		});
-		console.log(`[Debug] CreateEmailResponse: ${JSON.stringify(result, null, 2)}`);
+		console.log(resendResult);
 	},
 } satisfies ExportedHandler<Bindings>;
