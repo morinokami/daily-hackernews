@@ -33,7 +33,13 @@ export default {
 		const news = await Promise.all(
 			topStories.map(async (story) => {
 				const newsDom = parseHTML(await fetch(story.url).then((response) => response.text()));
-				const newsContent = new Readability(newsDom.window.document).parse();
+				let newsContent: ReturnType<typeof Readability.prototype.parse> | null = null;
+				try {
+					newsContent = new Readability(newsDom.window.document).parse();
+				} catch (error) {
+					console.log(`Failed to parse ${story.url}`);
+					console.error(error);
+				}
 				const comments = await Promise.all(
 					story.kids.map(async (id) => {
 						const comment = (await fetch(`https://hacker-news.firebaseio.com/v0/item/${id}.json`).then((response) => response.json())) as {
@@ -45,7 +51,7 @@ export default {
 				return {
 					title: story.title,
 					url: story.url,
-					news: newsContent?.textContent,
+					news: newsContent?.textContent ?? '',
 					comments,
 				};
 			}),
@@ -61,6 +67,7 @@ export default {
 					role: 'user',
 					content: `The following is data collected from ${NUM_NEWS} top news articles and comments from Hacker News.
 Please summarize the content of the articles and describe how people are reacting to them in the comments.
+Note that the articles are from various sources and it's possible that some of them may be empty or contain irrelevant information.
 
 Please output in the following format:
 - Title: <title> (URL: <url>)
