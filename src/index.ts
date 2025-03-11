@@ -16,7 +16,7 @@ export default {
 	async scheduled(controller, env, ctx) {
 		const topStories = (await fetch('https://hacker-news.firebaseio.com/v0/topstories.json')
 			.then((response) => response.json() as Promise<number[]>)
-			.then((ids) => ids.slice(0, 50))
+			.then((ids) => ids.slice(0, 10))
 			.then((ids) =>
 				Promise.all(ids.map((id) => fetch(`https://hacker-news.firebaseio.com/v0/item/${id}.json`).then((response) => response.json()))),
 			)
