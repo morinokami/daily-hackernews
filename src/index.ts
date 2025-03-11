@@ -13,6 +13,9 @@ type Bindings = {
 const NUM_NEWS = 5;
 
 export default {
+	async fetch(request, env, ctx) {
+		return new Response('OK', { status: 200 });
+	},
 	async scheduled(controller, env, ctx) {
 		const topStories = (await fetch('https://hacker-news.firebaseio.com/v0/topstories.json')
 			.then((response) => response.json() as Promise<number[]>)
