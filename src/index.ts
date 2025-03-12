@@ -7,7 +7,7 @@ import * as React from 'react';
 import { Resend } from 'resend';
 import { z } from 'zod';
 
-import Email from './emails/my-email';
+import Email, { SummarySchema } from './emails/my-email';
 
 type Bindings = {
 	EMAIL_FROM: string;
@@ -18,23 +18,11 @@ type Bindings = {
 
 const NUM_NEWS = 5;
 
-const SummarySchema = z.object({
-	summaries: z.array(
-		z.object({
-			id: z.number(),
-			newsTitle: z.string(),
-			url: z.string(),
-			newsSummary: z.string(),
-			commentsSummary: z.string(),
-		}),
-	),
-});
-
 export default {
-	async fetch(request, env, ctx) {
+	async fetch() {
 		return new Response('OK', { status: 200 });
 	},
-	async scheduled(controller, env, ctx) {
+	async scheduled(_controller, env, _ctx) {
 		const topStories = (await fetch('https://hacker-news.firebaseio.com/v0/topstories.json')
 			.then((response) => response.json() as Promise<number[]>)
 			.then((ids) => ids.slice(0, 10))
@@ -42,11 +30,11 @@ export default {
 				Promise.all(ids.map((id) => fetch(`https://hacker-news.firebaseio.com/v0/item/${id}.json`).then((response) => response.json()))),
 			)
 			.then((stories) => stories.sort((a: any, b: any) => b.score - a.score).slice(0, NUM_NEWS))) as {
-			id: number;
-			title: string;
-			url: string;
-			kids: number[];
-		}[];
+				id: number;
+				title: string;
+				url: string;
+				kids: number[];
+			}[];
 
 		const news = await Promise.all(
 			topStories.map(async (story) => {
@@ -93,7 +81,7 @@ Note that the articles are from various sources and it's possible that some of t
 ${JSON.stringify(news)}`,
 				},
 			],
-			response_format: zodResponseFormat(SummarySchema, 'summaries'),
+			response_format: zodResponseFormat(z.object({ summaries: z.array(SummarySchema) }), 'summaries'),
 		});
 		console.log(completion.usage);
 
